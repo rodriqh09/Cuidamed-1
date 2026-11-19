@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi calendario de medicamentos</title>
+<style>
+:root{
+  --blue:#1769e8;--blue2:#dceaff;--ink:#101827;--muted:#667085;
+  --green:#31bd78;--bg:#eaf3ff;--white:#fff;--line:#e8edf5;
+  --shadow:0 18px 50px rgba(48,91,151,.12);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);
+  background:radial-gradient(circle at 10% 5%,#fff 0,transparent 24%),linear-gradient(135deg,#e8f2ff,#d6e7ff 55%,#edf5ff);min-height:100vh}
+button{font:inherit;cursor:pointer}
+.page{max-width:1220px;margin:38px auto;padding:0 22px}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:16px}
+.brand{display:flex;align-items:center;gap:13px}
+.logo{width:48px;height:48px;border-radius:16px;background:var(--blue);color:white;display:grid;place-items:center;font-size:25px;box-shadow:0 8px 18px #1769e844}
+h1{font-size:clamp(25px,4vw,36px);margin:0;letter-spacing:-1.2px}
+.sub{color:var(--muted);margin:5px 0 0;font-size:14px}
+.top-actions{display:flex;gap:10px}
+.icon-btn{width:48px;height:48px;border:0;border-radius:50%;background:#fff;color:#123d85;box-shadow:0 5px 16px #234e8414;font-size:20px}
+.shell{background:#ffffffd9;border:1px solid #ffffff;border-radius:34px;padding:26px;box-shadow:var(--shadow);backdrop-filter:blur(10px)}
+.layout{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(340px,.92fr);gap:24px}
+.panel{background:#fff;border-radius:28px;padding:24px;box-shadow:0 8px 25px #244b7510}
+.calendar-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:20px}
+.month-title{font-size:20px;font-weight:750}
+.month-nav{display:flex;gap:8px}
+.pill-btn{border:0;border-radius:30px;padding:10px 16px;background:#eaf2ff;color:#15488e;font-weight:700}
+.weekdays,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;text-align:center}
+.weekdays{color:#718096;font-size:13px;margin-bottom:10px}
+.day{border:0;background:transparent;border-radius:15px;min-height:54px;color:#263244;font-weight:650;position:relative}
+.day:hover{background:#f0f5ff}
+.day.muted{color:#b7c0ce}
+.day.today{outline:2px solid #9fc3ff}
+.day.selected{background:var(--blue);color:white;box-shadow:0 7px 16px #1769e83b}
+.day.has-dose:after{content:"";position:absolute;width:6px;height:6px;background:var(--green);border-radius:50%;bottom:5px;left:calc(50% - 3px)}
+.day.selected.has-dose:after{background:#fff}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px;color:#667085;font-size:13px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:var(--green)}
+.right-col{display:flex;flex-direction:column;gap:22px}
+.section-title{font-size:23px;margin:0 0 18px;letter-spacing:-.5px}
+.date-label{font-size:13px;color:var(--muted);margin-bottom:12px}
+.med-card{border:1px solid var(--line);border-radius:20px;padding:17px;margin-bottom:12px}
+.med-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.med-time{font-size:13px;color:#64748b;font-weight:700}
+.med-name{font-size:20px;font-weight:800;margin:5px 0}
+.med-detail{color:#667085;font-size:14px;line-height:1.5}
+.status{font-size:12px;font-weight:750;border-radius:20px;padding:6px 10px;background:#eef2f7;color:#64748b;white-space:nowrap}
+.status.done{background:#e0f7ec;color:#168454}
+.status.snoozed{background:#fff4d8;color:#946200}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}
+.btn{border:0;border-radius:30px;padding:12px 17px;font-weight:750}
+.primary{background:var(--blue);color:white;box-shadow:0 7px 15px #1769e833}
+.secondary{background:#eaf2ff;color:#174c96}
+.outline{background:white;border:1.5px solid #8aa8ce;color:#24364e}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.family{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.family p{color:var(--muted);font-size:14px;line-height:1.5;margin:7px 0 0}
+.call-btn{display:flex;align-items:center;gap:12px;width:100%;padding:12px 18px;border:0;border-radius:28px;background:#e8f1ff;color:#153e7b;font-weight:750;font-size:16px;margin-top:16px;text-align:left}
+.call-icon{width:42px;height:42px;border-radius:50%;background:white;display:grid;place-items:center;font-size:20px}
+.add-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+.small{font-size:13px;color:var(--muted)}
+.empty{padding:24px;text-align:center;color:var(--muted);background:#f7faff;border-radius:18px}
+.note{font-size:12px;color:#758196;line-height:1.5;margin:18px 4px 0}
+.modal-backdrop{position:fixed;inset:0;background:#10213b66;display:none;place-items:center;padding:18px;z-index:5}
+.modal-backdrop.open{display:grid}
+.modal{background:white;border-radius:25px;padding:25px;width:min(100%,440px);box-shadow:var(--shadow)}
+.modal h2{margin:0 0 16px}
+.field{display:grid;gap:6px;margin:12px 0}
+.field label{font-size:13px;font-weight:700;color:#475467}
+.field input,.field select{border:1px solid #d9e1ec;border-radius:12px;padding:12px;font:inherit;width:100%;background:white}
+.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#14233b;color:white;padding:12px 18px;border-radius:25px;display:none;z-index:9;box-shadow:var(--shadow)}
+.toast.show{display:block}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.page{margin:20px auto}.shell{padding:15px;border-radius:25px}.panel{padding:18px}}
+@media(max-width:480px){.topbar{align-items:flex-start}.top-actions{gap:5px}.icon-btn{width:40px;height:40px}.day{min-height:43px}.calendar-head{flex-wrap:wrap}.section-title{font-size:21px}}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">✚</div>
+      <div><h1>Mi medicación</h1><p class="sub">Un recordatorio sencillo para cada día</p></div>
+    </div>
+    <div class="top-actions">
+      <button class="icon-btn" title="Ir a hoy" aria-label="Ir a hoy" id="goToday">◷</button>
+      <button class="icon-btn" title="Agregar medicamento" aria-label="Agregar medicamento" id="openAdd">＋</button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="layout">
+      <section class="panel" aria-label="Calendario mensual">
+        <div class="calendar-head">
+          <div class="month-title" id="monthTitle">Mes</div>
+          <div class="month-nav">
+            <button class="pill-btn" id="prevMonth" aria-label="Mes anterior">‹</button>
+            <button class="pill-btn" id="nextMonth" aria-label="Mes siguiente">›</button>
+          </div>
+        </div>
+        <div class="weekdays"><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div></div>
+        <div class="days" id="calendarDays"></div>
+        <div class="legend"><span><i class="dot"></i>Hay medicamentos</span><span>● Día seleccionado</span></div>
+        <p class="note">Selecciona un día para revisar los recordatorios y marcar las tomas.</p>
+      </section>
+
+      <div class="right-col">
+        <section class="panel">
+          <div class="add-row"><div><h2 class="section-title" style="margin:0">Recordatorios</h2><div class="small" id="selectedDate"></div></div><button class="pill-btn" id="addFromPanel">＋ Añadir</button></div>
+          <div id="medList"></div>
+        </section>
+        <section class="panel">
+          <div class="family"><div><h2 class="section-title" style="margin:0">Contacto familiar</h2><p>Ten a mano a alguien de confianza si necesitas ayuda.</p></div><span style="font-size:30px">♡</span></div>
+          <button class="call-btn" id="callFamily"><span class="call-icon">☎</span><span id="familyLabel">Llamar a un familiar</span></button>
+          <p class="note">Puedes configurar el número de contacto desde el botón de teléfono.</p>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="medModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <form class="modal" id="medForm">
+    <h2 id="modalTitle">Añadir medicamento</h2>
+    <div class="field"><label for="medName">Nombre del medicamento</label><input id="medName" required maxlength="60" placeholder="Ej. Paracetamol"></div>
+    <div class="field"><label for="medDose">Dosis indicada</label><input id="medDose" required maxlength="50" placeholder="Ej. 500 mg"></div>
+    <div class="field"><label for="medTime">Hora del recordatorio</label><input id="medTime" type="time" required value="10:00"></div>
+    <div class="field"><label for="medInstructions">Indicaciones (opcional)</label><input id="medInstructions" maxlength="100" placeholder="Ej. Según indicación médica"></div>
+    <div class="modal-actions"><button type="button" class="btn outline" id="cancelModal">Cancelar</button><button type="submit" class="btn primary">Guardar</button></div>
+  </form>
+</div>
+<div class="modal-backdrop" id="contactModal" role="dialog" aria-modal="true" aria-labelledby="contactTitle">
+  <form class="modal" id="contactForm">
+    <h2 id="contactTitle">Contacto familiar</h2>
+    <div class="field"><label for="contactName">Nombre</label><input id="contactName" placeholder="Ej. Hijo/a"></div>
+    <div class="field"><label for="contactPhone">Teléfono (con código de país)</label><input id="contactPhone" type="tel" placeholder="+56 9 1234 5678"></div>
+    <div class="modal-actions"><button type="button" class="btn outline" id="cancelContact">Cancelar</button><button type="submit" class="btn primary">Guardar</button></div>
+  </form>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const today = new Date(); today.setHours(0,0,0,0);
+let viewMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+let selected = new Date(today);
+const defaultMeds = [
+ {id:1,name:"Paracetamol",dose:"500 mg",time:"10:00",instructions:"Ejemplo: seguir la indicación del profesional de salud",status:"pending"},
+ {id:2,name:"Medicamento de ejemplo",dose:"Según receta",time:"20:00",instructions:"Recordatorio de demostración",status:"pending"}
+];
+let meds = JSON.parse(localStorage.getItem("miMeds") || "null") || defaultMeds;
+let contact = JSON.parse(localStorage.getItem("miContact") || "null") || {name:"un familiar",phone:""};
+let states = JSON.parse(localStorage.getItem("miStates") || "{}");
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2,"0");
+const keyDate = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const sameDay = (a,b) => keyDate(a)===keyDate(b);
+const fmtDate = d => new Intl.DateTimeFormat("es-CL",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(d);
+function save(){localStorage.setItem("miMeds",JSON.stringify(meds));localStorage.setItem("miStates",JSON.stringify(states));}
+function statusFor(m){return states[keyDate(selected)+"_"+m.id] || m.status || "pending";}
+function renderCalendar(){
+ const year=viewMonth.getFullYear(), month=viewMonth.getMonth();
+ $("monthTitle").textContent=new Intl.DateTimeFormat("es-CL",{month:"long",year:"numeric"}).format(viewMonth);
+ const first=new Date(year,month,1), offset=(first.getDay()+6)%7, daysIn=new Date(year,month+1,0).getDate();
+ const prevCount=new Date(year,month,0).getDate(), cells=[];
+ for(let i=0;i<42;i++){
+  let date,muted=false;
+  if(i<offset){date=new Date(year,month-1,prevCount-offset+i+1);muted=true}
+  else if(i>=offset+daysIn){date=new Date(year,month+1,i-offset-daysIn+1);muted=true}
+  else date=new Date(year,month,i-offset+1);
+  const has=meds.length>0 && !muted;
+  cells.push(`<button class="day ${muted?"muted":""} ${sameDay(date,selected)?"selected":""} ${sameDay(date,today)?"today":""} ${has?"has-dose":""}" data-date="${keyDate(date)}" aria-label="${fmtDate(date)}">${date.getDate()}</button>`);
+ }
+ $("calendarDays").innerHTML=cells.join("");
+ $("calendarDays").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{selected=new Date(b.dataset.date+"T00:00:00");if(selected.getMonth()!==viewMonth.getMonth())viewMonth=new Date(selected.getFullYear(),selected.getMonth(),1);render();}));
+}
+function renderMeds(){
+ $("selectedDate").textContent=fmtDate(selected);
+ if(!meds.length){$("medList").innerHTML='<div class="empty">Todavía no hay medicamentos.<br>Usa “Añadir” para crear un recordatorio.</div>';return}
+ const sorted=[...meds].sort((a,b)=>a.time.localeCompare(b.time));
+ $("medList").innerHTML=sorted.map(m=>{
+  const s=statusFor(m), label=s==="done"?"Tomada":s==="snoozed"?"Pospuesta":s==="skipped"?"Omitida":"Pendiente";
+  return `<article class="med-card"><div class="med-top"><div><div class="med-time">${m.time}</div><div class="med-name">${escapeHtml(m.name)} · ${escapeHtml(m.dose)}</div><div class="med-detail">${escapeHtml(m.instructions||"Revisa la indicación de tu profesional de salud.")}</div></div><span class="status ${s==="done"?"done":s==="snoozed"?"snoozed":""}">${label}</span></div><div class="actions"><button class="btn primary" data-action="done" data-id="${m.id}" ${s==="done"?"disabled":""}>✓ Tomada</button><button class="btn secondary" data-action="snooze" data-id="${m.id}">Posponer</button><button class="btn outline" data-action="skip" data-id="${m.id}">Omitir</button></div></article>`;
+ }).join("");
+ $("medList").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
+  const id=b.dataset.id, action=b.dataset.action;
+  states[keyDate(selected)+"_"+id]=action==="done"?"done":action==="snooze"?"snoozed":"skipped";
+  save();renderMeds();renderCalendar();
+  toast(action==="done"?"Toma marcada como realizada.":action==="snooze"?"Recordatorio pospuesto.":"Toma marcada como omitida.");
+ }));
+}
+function render(){renderCalendar();renderMeds();$("familyLabel").textContent=contact.name?`Llamar a ${contact.name}`:"Llamar a un familiar";}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function toast(msg){$("toast").textContent=msg;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2400);}
+function openModal(id){$(id).classList.add("open");}
+function closeModal(id){$(id).classList.remove("open");}
+$("prevMonth").onclick=()=>{viewMonth=new Date(viewMonth.getFullYear(),viewMonth.getMonth()-1,1);renderCalendar();};
+$("nextMonth").onclick=()=>{viewMonth=new Date(viewMonth.getFullYear(),viewMonth.getMonth()+1,1);renderCalendar();};
+$("goToday").onclick=()=>{selected=new Date(today);viewMonth=new Date(today.getFullYear(),today.getMonth(),1);render();};
+$("openAdd").onclick=$("addFromPanel").onclick=()=>openModal("medModal");
+$("cancelModal").onclick=()=>closeModal("medModal");
+$("medModal").addEventListener("click",e=>{if(e.target===$("medModal"))closeModal("medModal")});
+$("medForm").onsubmit=e=>{
+ e.preventDefault();
+ meds.push({id:Date.now(),name:$("medName").value.trim(),dose:$("medDose").value.trim(),time:$("medTime").value,instructions:$("medInstructions").value.trim(),status:"pending"});
+ save();render();closeModal("medModal");e.target.reset();$("medTime").value="10:00";toast("Medicamento agregado.");
+};
+$("callFamily").onclick=()=>{
+ $("contactName").value=contact.name==="un familiar"?"":contact.name;
+ $("contactPhone").value=contact.phone||"";
+ openModal("contactModal");
+};
+$("cancelContact").onclick=()=>closeModal("contactModal");
+$("contactForm").onsubmit=e=>{
+ e.preventDefault();contact={name:$("contactName").value.trim()||"un familiar",phone:$("contactPhone").value.trim()};
+ localStorage.setItem("miContact",JSON.stringify(contact));render();closeModal("contactModal");
+};
+$("contactForm").addEventListener("submit",e=>e.preventDefault());
+$("callFamily").addEventListener("dblclick",()=>{if(contact.phone)location.href="tel:"+contact.phone;});
+render();
+</script>
+</body>
+</html>
